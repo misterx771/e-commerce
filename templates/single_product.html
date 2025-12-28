@@ -1,0 +1,235 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-lg-6">
+            <div class="main-image mb-3">
+                {% if product.images.first %}
+                <img src="{{ product.images.first.image.url }}" class="img-fluid rounded" alt="{{ product.name }}" id="mainImage">
+                {% else %}
+                <img src="{% static 'img/img-products/default.png' %}" class="img-fluid rounded" alt="{{ product.name }}" id="mainImage">
+                {% endif %}
+            </div>
+            
+            <div class="row">
+                {% for image in product.images.all|slice:":6" %}
+                <div class="col-2">
+                    <img src="{{ image.image.url }}" class="img-thumbnail" alt="{{ product.name }}" 
+                         onclick="changeMainImage(this.src)" style="cursor: pointer;">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Product Info -->
+        <div class="col-lg-6">
+            <!-- Rating -->
+            <div class="mb-3">
+                {% with stars=avg_rating|floatformat:0|add:"0" %}
+                {% for i in "12345" %}
+                    {% if forloop.counter <= stars %}
+                    <i class="fas fa-star text-warning"></i>
+                    {% else %}
+                    <i class="far fa-star text-warning"></i>
+                    {% endif %}
+                {% endfor %}
+                <span class="ms-2 text-muted">({{ reviews.count }} customer reviews)</span>
+                {% endwith %}
+            </div>
+            
+            <!-- Title -->
+            <h1 class="fw-bold mb-3">{{ product.name }}</h1>
+            
+            <!-- Price -->
+            <div class="d-flex align-items-center mb-4">
+                <h2 class="text-warning fw-bold mb-0">${{ product.price }}</h2>
+                {% if product.old_price %}
+                <span class="text-muted text-decoration-line-through ms-3 fs-4">${{ product.old_price }}</span>
+                <span class="badge bg-danger ms-2 fs-6">SAVE ${{ product.old_price|floatformat:0|add:"-" }}{{ product.price|floatformat:0 }}</span>
+                {% endif %}
+            </div>
+            
+            <!-- Description -->
+            <p class="lead mb-4">{{ product.description }}</p>
+            
+            <!-- Colors -->
+            <div class="mb-4">
+                <h5 class="fw-bold mb-3">Colors:</h5>
+                <div class="d-flex gap-2">
+                    {% for color in product.get_colors_list %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="color" id="color{{ forloop.counter }}" checked>
+                        <label class="form-check-label" for="color{{ forloop.counter }}">
+                            <span class="color-dot me-1" style="background-color: {{ color|lower }};"></span>
+                            {{ color }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Sizes -->
+            <div class="mb-4">
+                <h5 class="fw-bold mb-3">Sizes:</h5>
+                <div class="d-flex gap-2">
+                    {% for size in product.get_sizes_list %}
+                    <button class="btn btn-outline-dark">{{ size|upper }}</button>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Quantity & Add to Cart -->
+            <div class="row mb-4">
+                <div class="col-md-4 mb-3">
+                    <div class="input-group">
+                        <button class="btn btn-outline-dark" type="button" onclick="decreaseQuantity()">-</button>
+                        <input type="text" class="form-control text-center" value="1" id="quantity" readonly>
+                        <button class="btn btn-outline-dark" type="button" onclick="increaseQuantity()">+</button>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <a href="{% url 'add_to_cart' product.id %}" class="btn btn-warning w-100 py-3 fw-bold" onclick="addToCart()">
+                        <i class="fas fa-shopping-cart me-2"></i>ADD TO CART
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Product Info -->
+            <div class="card bg-light border-0">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-2"><i class="fas fa-truck text-warning me-2"></i> Free Shipping</p>
+                            <p class="mb-0"><i class="fas fa-shield-alt text-warning me-2"></i> 30-Day Return</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-2"><i class="fas fa-credit-card text-warning me-2"></i> Secure Payment</p>
+                            <p class="mb-0"><i class="fas fa-headset text-warning me-2"></i> 24/7 Support</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product Tabs -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="productTab">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#description">Description</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#reviews">Reviews ({{ reviews.count }})</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#shipping">Shipping Info</a>
+                </li>
+            </ul>
+            
+            <div class="tab-content p-4 border border-top-0">
+                <!-- Description -->
+                <div class="tab-pane fade show active" id="description">
+                    <p>{{ product.description }}</p>
+                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, voluptatum. Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, voluptatum.</p>
+                </div>
+                
+                <!-- Reviews -->
+                <div class="tab-pane fade" id="reviews">
+                    {% for review in reviews %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <h5 class="mb-0">{{ review.user_name }}</h5>
+                            <div>
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                    <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                    <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p>{{ review.comment }}</p>
+                        <small class="text-muted">{{ review.created_at|date:"F d, Y" }}</small>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No reviews yet. Be the first to review!</p>
+                    {% endfor %}
+                </div>
+                
+                <!-- Shipping -->
+                <div class="tab-pane fade" id="shipping">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Free shipping on orders over $100</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Estimated delivery: 3-5 business days</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> International shipping available</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i> Track your order online</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="fw-bold mb-4">Related Products</h2>
+            <div class="row">
+                {% for product in related_products %}
+                <div class="col-md-3 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}" 
+                             style="height: 200px; object-fit: cover;">
+                        {% else %}
+                        <img src="{% static 'img/img-products/default.png' %}" class="card-img-top" alt="{{ product.name }}" 
+                             style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <div class="card-body text-center">
+                            <h6 class="card-title">{{ product.name|truncatechars:30 }}</h6>
+                            <p class="text-warning fw-bold">${{ product.price }}</p>
+                            <a href="{% url 'single_product' product.slug %}" class="btn btn-outline-warning btn-sm w-100">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function changeMainImage(src) {
+    document.getElementById('mainImage').src = src;
+}
+
+function decreaseQuantity() {
+    var qty = document.getElementById('quantity');
+    var current = parseInt(qty.value);
+    if (current > 1) {
+        qty.value = current - 1;
+    }
+}
+
+function increaseQuantity() {
+    var qty = document.getElementById('quantity');
+    var current = parseInt(qty.value);
+    qty.value = current + 1;
+}
+
+function addToCart() {
+    var quantity = document.getElementById('quantity').value;
+    alert('Added ' + quantity + ' item(s) to cart!');
+}
+</script>
+{% endblock %}

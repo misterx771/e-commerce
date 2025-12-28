@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+
+                    <!-- Categories -->
+                    <h5 class="fw-bold mb-3">Shop By Categories</h5>
+                    <div class="list-group list-group-flush">
+                        <a href="{% url 'products_list' %}"
+                           class="list-group-item list-group-item-action {% if not selected_category %}active{% endif %}">
+                            All Products
+                        </a>
+
+                        {% for category in categories %}
+                        <a href="{% url 'products_list' %}?category={{ category.slug }}"
+                           class="list-group-item list-group-item-action {% if selected_category == category.slug %}active{% endif %}">
+                            {{ category.name }}
+                            <span class="badge bg-warning float-end">
+                                {{ category.product_set.count }}
+                            </span>
+                        </a>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Price -->
+                    <h5 class="fw-bold mt-4 mb-3">Shop By Price</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Price Range: $0 - $1000</label>
+                        <input type="range" class="form-range" min="0" max="1000">
+                    </div>
+
+                    <!-- Colors -->
+                    <h5 class="fw-bold mt-4 mb-3">Shop By Color</h5>
+                    <div class="d-flex flex-wrap">
+                        <div class="form-check me-3 mb-2">
+                            <input class="form-check-input" type="radio" name="color">
+                            <label class="form-check-label">Black</label>
+                        </div>
+                        <div class="form-check me-3 mb-2">
+                            <input class="form-check-input" type="radio" name="color">
+                            <label class="form-check-label">Red</label>
+                        </div>
+                        <div class="form-check me-3 mb-2">
+                            <input class="form-check-input" type="radio" name="color">
+                            <label class="form-check-label">Blue</label>
+                        </div>
+                        <div class="form-check me-3 mb-2">
+                            <input class="form-check-input" type="radio" name="color">
+                            <label class="form-check-label">Yellow</label>
+                        </div>
+                        <div class="form-check me-3 mb-2">
+                            <input class="form-check-input" type="radio" name="color">
+                            <label class="form-check-label">Green</label>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Products -->
+        <div class="col-md-9">
+
+            <!-- Search & Sort -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <form method="get" class="d-flex">
+                        <input type="text" name="search" class="form-control me-2"
+                               placeholder="Search products..."
+                               value="{{ search_query|default:'' }}">
+                        <button class="btn btn-warning">Search</button>
+                    </form>
+                </div>
+
+                <div class="col-md-6">
+                    <select class="form-select"
+                            onchange="window.location=this.value">
+                        <option value="{% url 'products_list' %}?sort=newest"
+                                {% if sort_option == 'newest' %}selected{% endif %}>
+                            Sort by: Newest
+                        </option>
+                        <option value="{% url 'products_list' %}?sort=price_low"
+                                {% if sort_option == 'price_low' %}selected{% endif %}>
+                            Sort by: Price Low to High
+                        </option>
+                        <option value="{% url 'products_list' %}?sort=price_high"
+                                {% if sort_option == 'price_high' %}selected{% endif %}>
+                            Sort by: Price High to Low
+                        </option>
+                        <option value="{% url 'products_list' %}?sort=name"
+                                {% if sort_option == 'name' %}selected{% endif %}>
+                            Sort by: Name
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Products Grid -->
+            <div class="row">
+                {% for product in products %}
+                <div class="col-md-4 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+
+                        <div class="position-relative">
+                            {% if product.images.first %}
+                            <img src="{{ product.images.first.image.url }}"
+                                 class="card-img-top"
+                                 style="height:200px; object-fit:cover;">
+                            {% else %}
+                            <img src="{% static 'img/img-products/default.png' %}"
+                                 class="card-img-top"
+                                 style="height:200px; object-fit:cover;">
+                            {% endif %}
+
+                            {% if product.old_price %}
+                            <span class="badge bg-danger position-absolute top-0 end-0 m-2">
+                                SALE
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body text-center">
+                            <h6>{{ product.name|truncatechars:30 }}</h6>
+
+                            <div class="mb-2">
+                                {% if product.old_price %}
+                                <span class="text-muted text-decoration-line-through me-2">
+                                    ${{ product.old_price }}
+                                </span>
+                                {% endif %}
+                                <span class="fw-bold text-warning">
+                                    ${{ product.price }}
+                                </span>
+                            </div>
+
+                            <div class="d-flex justify-content-center gap-2">
+                                <a href="{% url 'single_product' product.slug %}"
+                                   class="btn btn-outline-warning btn-sm">
+                                    View Details
+                                </a>
+                                <a href="{% url 'add_to_cart' product.id %}"
+                                   class="btn btn-warning btn-sm">
+                                    Add to Cart
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <h4 class="text-muted">No products found</h4>
+                    <a href="{% url 'products_list' %}" class="btn btn-warning mt-3">
+                        View All Products
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if products.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+
+                    {% if products.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.previous_page_number }}">
+                            Previous
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            {{ products.number }} / {{ products.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if products.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ products.next_page_number }}">
+                            Next
+                        </a>
+                    </li>
+                    {% endif %}
+
+                </ul>
+            </nav>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+    

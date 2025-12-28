@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block banner %}
+<!-- Hero Banner -->
+<div class="banner" style="
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                url('{% static 'img/cagetogoryImg/livingroom-category.jpeg' %}');
+    background-size: cover;
+    background-position: center;
+    min-height: 500px;
+    display: flex;
+    align-items: center;
+    padding-left: 60px;
+">
+    <div class="text-white">
+        <h1 class="display-4 fw-bold">Minimalist</h1>
+        <h1 class="display-4 fw-bold">Interior Style</h1>
+        <a href="{% url 'products_list' %}" class="btn btn-warning btn-lg mt-3 px-4">View Collection</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Services Section -->
+<section class="py-5 text-center">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="service-box p-4">
+                    <i class="fas fa-shipping-fast fa-3x text-warning mb-3"></i>
+                    <h5>FREE SHIPPING</h5>
+                    <p class="text-muted">Free shipping on all order over $100</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="service-box p-4">
+                    <i class="fas fa-headset fa-3x text-warning mb-3"></i>
+                    <h5>24/7 SUPPORT</h5>
+                    <p class="text-muted">We will assist you with your inquiries</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="service-box p-4">
+                    <i class="fas fa-shield-alt fa-3x text-warning mb-3"></i>
+                    <h5>MONEY BACK</h5>
+                    <p class="text-muted">Free 100% refund for 30 days</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <h3 class="mb-3">Product Categories</h3>
+                <p class="text-muted">Lorem ipsum dolor sit amet consectetur adipisicing elit. Tempore neque minus in
+                    error sunt laudantium.</p>
+                <a href="{% url 'products_list' %}" class="text-warning text-decoration-none fw-bold">
+                    View All Categories →
+                </a>
+            </div>
+            <div class="col-md-9">
+                <div class="row">
+                    {% for category in categories %}
+                    <div class="col-md-3 mb-4">
+                        <div class="category-card position-relative overflow-hidden rounded">
+                            {% if category.image %}
+                            <img src="{{ category.image.url }}" class="img-fluid" alt="{{ category.name }}">
+                            {% else %}
+                            <img src="{% static 'img/cagetogoryImg/default.jpg' %}" class="img-fluid"
+                                alt="{{ category.name }}">
+                            {% endif %}
+                            <div class="category-overlay position-absolute bottom-0 start-0 p-3 text-white w-100">
+                                <h5 class="mb-0">{{ category.name|upper }}</h5>
+                                <p class="mb-0 text-warning">{{ category.item_count }} items</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Products</h2>
+        <div class="row">
+            {% for product in featured_products %}
+            <div class="col-md-4 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="position-relative">
+                        {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" class="card-img-top" alt="{{ product.name }}"
+                            style="height: 250px; object-fit: cover;">
+                        {% else %}
+                        <img src="{% static 'img/img-products/default.png' %}" class="card-img-top"
+                            alt="{{ product.name }}" style="height: 250px; object-fit: cover;">
+                        {% endif %}
+                        <span class="position-absolute top-0 end-0 m-2">
+                            <i class="fas fa-search text-white bg-dark p-2 rounded-circle"></i>
+                        </span>
+                    </div>
+                    <div class="card-body text-center">
+                        <h5 class="card-title">{{ product.name }}</h5>
+                        <div class="d-flex justify-content-center align-items-center">
+                            {% if product.old_price %}
+                            <span class="text-muted text-decoration-line-through me-2">${{ product.old_price }}</span>
+                            {% endif %}
+                            <span class="text-warning fw-bold">${{ product.price }}</span>
+                        </div>
+                        <a href="{% url 'add_to_cart' product.id %}" class="btn btn-warning mt-3">Add to Cart</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter -->
+<section class="py-5 bg-dark text-white">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <h2 class="mb-4">NEWSLETTER</h2>
+                <p class="mb-4">Lorem ipsum dolor sit amet consectetur adipisicing elit. Deleniti blanditiis similique
+                    eum.</p>
+                <form method="POST" action="{% url 'newsletter_subscribe' %}" class="d-flex">
+                    {% csrf_token %}
+                    <input type="email" name="email" class="form-control me-2" placeholder="Enter your email" required>
+                    <button type="submit" class="btn btn-warning">Subscribe</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
